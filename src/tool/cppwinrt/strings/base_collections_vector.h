@@ -235,14 +235,14 @@ namespace winrt::impl
 
             uint32_t GetMany(array_view<Windows::Foundation::IInspectable> values)
             {
-                uint32_t const actual = (std::min)(static_cast<uint32_t>(std::distance(m_current, m_end)), values.size());
+                uint32_t const actual = (std::min)(static_cast<uint32_t>(m_end - m_current), values.size());
 
                 std::transform(m_current, m_current + actual, values.begin(), [&](auto && value)
                     {
                         return box_value(value);
                     });
 
-                std::advance(m_current, actual);
+                m_current += actual;
                 return actual;
             }
 

@@ -21,7 +21,7 @@ TEST_CASE("single_threaded_observable_vector")
         REQUIRE(changed);
     }
     {
-        // Making sure we can still create IInspectable collections are aren't "special".
+        // Making sure we can still create IInspectable collections that aren't "special".
 
         IObservableVector<IInspectable> vector = single_threaded_observable_vector<IInspectable>();
         bool changed{};

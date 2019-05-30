@@ -21,7 +21,7 @@ namespace winrt
             return make<iterator>(static_cast<D*>(this));
         }
 
-    protected:
+    private:
 
         template<typename InputIt, typename Size, typename OutputIt>
         auto copy_n(InputIt first, Size count, OutputIt result) const
@@ -34,19 +34,26 @@ namespace winrt
             {
                 return std::transform(first, std::next(first, count), result, [&](auto&& value)
                 {
-                    if constexpr (!impl::is_key_value_pair<T>::value)
-                    {
-                        return static_cast<D const&>(*this).unwrap_value(value);
-                    }
-                    else
-                    {
-                        return make<impl::key_value_pair<T>>(static_cast<D const&>(*this).unwrap_value(value.first), static_cast<D const&>(*this).unwrap_value(value.second));
-                    }
+                    return unwrap_pair(value);
                 });
             }
         }
 
-    private:
+        template <class Iterator>
+        constexpr bool is_random_iterator_v = std::is_convertible_v<typename std::iterator_traits<Iterator>::iterator_category(), std::random_access_iterator_tag>;
+
+        template <typename U>
+        auto unwrap_pair(U const& value) const
+        {
+            if constexpr (!impl::is_key_value_pair<T>::value)
+            {
+                return static_cast<D const&>(*this).unwrap_value(value);
+            }
+            else
+            {
+                return make<impl::key_value_pair<T>>(static_cast<D const&>(*this).unwrap_value(value.first), static_cast<D const&>(*this).unwrap_value(value.second));
+            }
+        }
 
         struct iterator : Version::iterator_type, implements<iterator, Windows::Foundation::Collections::IIterator<T>>
         {
@@ -76,14 +83,7 @@ namespace winrt
                     throw hresult_out_of_bounds();
                 }
 
-                if constexpr (!impl::is_key_value_pair<T>::value)
-                {
-                    return m_owner->unwrap_value(*m_current);
-                }
-                else
-                {
-                    return make<impl::key_value_pair<T>>(m_owner->unwrap_value(m_current->first), m_owner->unwrap_value(m_current->second));
-                }
+                return m_owner->unwrap_pair(*m_current);
             }
 
             bool HasCurrent() const noexcept
@@ -103,10 +103,26 @@ namespace winrt
 
             uint32_t GetMany(array_view<T> values)
             {
-                uint32_t const actual = (std::min)(static_cast<uint32_t>(std::distance(m_current, m_end)), values.size());
-                m_owner->copy_n(m_current, actual, values.begin());
-                std::advance(m_current, actual);
-                return actual;
+                if constexpr (is_random_iterator_v<decltype(m_current)>)
+                {
+                    uint32_t const actual = (std::min)(static_cast<uint32_t>(m_end - m_current), values.size());
+                    m_owner->copy_n(m_current, actual, values.begin());
+                    m_current += actual;
+                    return actual;
+                }
+                else
+                {
+                    auto output = values.begin();
+
+                    while (output < values.end() && m_current != m_end)
+                    {
+                        *output = m_owner->unwrap_pair(*m_current);
+                        ++output;
+                        ++m_current;
+                    }
+
+                    return static_cast<uint32_t>(output - values.begin());
+                }
             }
 
         private:
