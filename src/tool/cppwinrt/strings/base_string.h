@@ -22,6 +22,18 @@ namespace winrt::impl
         return 0 != result;
     }
 
+    inline bool requal(std::wstring_view const& left, std::wstring_view const& right) noexcept
+    {
+        return std::equal(left.rbegin(), left.rend(), right.rbegin(), right.rend());
+    };
+
+    inline std::wstring_view raw_hstring_view(void* handle) noexcept
+    {
+        uint32_t length{};
+        wchar_t const* const buffer = WINRT_WindowsGetStringRawBuffer(handle, &length);
+        return { buffer, length };
+    }
+
     struct hstring_traits
     {
         using type = void*;

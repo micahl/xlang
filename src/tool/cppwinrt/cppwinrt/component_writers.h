@@ -106,7 +106,7 @@ namespace xlang
         if (settings.component_opt)
         {
             auto format = R"(
-    if (requal(name, L"%.%"))
+    if (winrt::impl::requal(name, L"%.%"))
     {
         return winrt_make_%();
     }
@@ -120,7 +120,7 @@ namespace xlang
         else
         {
             auto format = R"(
-    if (requal(name, L"%.%"))
+    if (winrt::impl::requal(name, L"%.%"))
     {
         return winrt::detach_abi(winrt::make<winrt::@::factory_implementation::%>());
     }
@@ -150,12 +150,7 @@ bool __stdcall %_can_unload_now() noexcept
 }
 
 void* __stdcall %_get_activation_factory(std::wstring_view const& name)
-{
-    auto requal = [](std::wstring_view const& left, std::wstring_view const& right) noexcept
-    {
-        return std::equal(left.rbegin(), left.rend(), right.rbegin(), right.rend());
-    };
-%
+{%
     return nullptr;
 }
 )";
@@ -186,9 +181,7 @@ int32_t __stdcall WINRT_CanUnloadNow() noexcept
 
 int32_t __stdcall WINRT_GetActivationFactory(void* classId, void** factory) noexcept try
 {
-    uint32_t length{};
-    wchar_t const* const buffer = WINRT_WindowsGetStringRawBuffer(classId, &length);
-    std::wstring_view const name{ buffer, length };
+    std::wstring_view const name = winrt::impl::raw_hstring_view(classId);
     *factory = %_get_activation_factory(name);
 
     if (*factory)
