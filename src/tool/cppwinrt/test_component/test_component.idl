@@ -137,6 +137,14 @@ namespace test_component
         [noexcept2] void NoexceptVoid();
         [noexcept2] Int32 NoexceptInt32();
         [noexcept2] String NoexceptString();
+
+        Int32 IntProperty;
+        String StringProperty;
+        Windows.Foundation.Collections.IIterable<Int32> IterableProperty;
+        Windows.Foundation.Collections.IVectorView<Int32> VectorViewProperty;
+        Windows.Foundation.Collections.IMapView<Int32, Int32> MapViewProperty;
+        Windows.Foundation.Collections.IVector<Int32> VectorProperty;
+        Windows.Foundation.Collections.IMap<Int32, Int32> MapProperty;
     }
 
     namespace Structs

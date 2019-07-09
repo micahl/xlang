@@ -208,7 +208,26 @@ namespace xlang
     {
         if (is_put_overload(method))
         {
-            return true;
+            XLANG_ASSERT(method_signature.params().size() == 1);
+
+            bool async{};
+
+            call(method_signature.params().front().second->Type().Type(),
+                [&](GenericTypeInstSig const& type)
+                {
+                    auto const& [type_namespace, type_name] = get_type_namespace_and_name(type.GenericType());
+
+                    if (type_namespace == "Windows.Foundation.Collections")
+                    {
+                        async =
+                            type_name == "IIterable`1" ||
+                            type_name == "IVectorView`1" ||
+                            type_name == "IMapView`2";
+                    }
+                },
+                [](auto&&) {});
+
+            return async;
         }
 
         if (!method_signature.return_signature())

@@ -107,6 +107,21 @@ namespace winrt::test_component::implementation
         int32_t NoexceptInt32() noexcept;
         hstring NoexceptString() noexcept;
 
+        int32_t IntProperty();
+        void IntProperty(int32_t value);
+        hstring StringProperty();
+        void StringProperty(hstring const& value);
+        Windows::Foundation::Collections::IIterable<int32_t> IterableProperty();
+        void IterableProperty(Windows::Foundation::Collections::IIterable<int32_t> value);
+        Windows::Foundation::Collections::IVectorView<int32_t> VectorViewProperty();
+        void VectorViewProperty(Windows::Foundation::Collections::IVectorView<int32_t> value);
+        Windows::Foundation::Collections::IMapView<int32_t, int32_t> MapViewProperty();
+        void MapViewProperty(Windows::Foundation::Collections::IMapView<int32_t, int32_t> value);
+        Windows::Foundation::Collections::IVector<int32_t> VectorProperty();
+        void VectorProperty(Windows::Foundation::Collections::IVector<int32_t> const& value);
+        Windows::Foundation::Collections::IMap<int32_t, int32_t> MapProperty();
+        void MapProperty(Windows::Foundation::Collections::IMap<int32_t, int32_t> const& value);
+        
     private:
 
         bool m_fail{};

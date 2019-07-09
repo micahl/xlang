@@ -301,6 +301,7 @@ catch (...) { return winrt::to_hresult(); }
 
         method_signature signature{ method };
         w.param_names = true;
+        w.async_types = !is_put_overload(method) && is_async(method, signature);
 
         w.write(format,
             get_name(method),
@@ -474,7 +475,7 @@ catch (...) { return winrt::to_hresult(); }
                 {
                     method_signature signature{ method };
                     auto method_name = get_name(method);
-                    w.async_types = is_async(method, signature);
+                    w.async_types = !is_put_overload(method) && is_async(method, signature);
 
                     if (is_add_overload(method) || is_remove_overload(method))
                     {
@@ -950,7 +951,7 @@ namespace winrt::@::implementation
                 for (auto&& method : factory.type.MethodList())
                 {
                     method_signature signature{ method };
-                    w.async_types = is_async(method, signature);
+                    w.async_types = !is_put_overload(method) && is_async(method, signature);
                     auto method_name = get_name(method);
 
                     w.write("        static % %(%)%;\n",
@@ -974,7 +975,7 @@ namespace winrt::@::implementation
             for (auto&& method : info.type.MethodList())
             {
                 method_signature signature{ method };
-                w.async_types = is_async(method, signature);
+                w.async_types = !is_put_overload(method) && is_async(method, signature);
                 auto method_name = get_name(method);
 
                 w.write("        % %(%)%;\n",
@@ -1105,7 +1106,7 @@ namespace winrt::@::implementation
                 for (auto&& method : factory.type.MethodList())
                 {
                     method_signature signature{ method };
-                    w.async_types = is_async(method, signature);
+                    w.async_types = !is_put_overload(method) && is_async(method, signature);
                     auto method_name = get_name(method);
 
                     w.write(format,
@@ -1136,7 +1137,7 @@ namespace winrt::@::implementation
 )";
 
                 method_signature signature{ method };
-                w.async_types = is_async(method, signature);
+                w.async_types = !is_put_overload(method) && is_async(method, signature);
                 auto method_name = get_name(method);
 
                 w.write(format,

@@ -411,4 +411,61 @@ namespace winrt::test_component::implementation
     {
         return L"123";
     }
+
+    int32_t Class::IntProperty()
+    {
+        throw hresult_not_implemented();
+    }
+    void Class::IntProperty(int32_t value)
+    {
+        throw hresult_not_implemented();
+    }
+    hstring Class::StringProperty()
+    {
+        throw hresult_not_implemented();
+    }
+    void Class::StringProperty(hstring const& value)
+    {
+        throw hresult_not_implemented();
+    }
+    Windows::Foundation::Collections::IIterable<int32_t> Class::IterableProperty()
+    {
+        throw hresult_not_implemented();
+    }
+    void Class::IterableProperty(Windows::Foundation::Collections::IIterable<int32_t> value)
+    {
+        throw hresult_not_implemented();
+    }
+    Windows::Foundation::Collections::IVectorView<int32_t> Class::VectorViewProperty()
+    {
+        throw hresult_not_implemented();
+    }
+    void Class::VectorViewProperty(Windows::Foundation::Collections::IVectorView<int32_t> value)
+    {
+        throw hresult_not_implemented();
+    }
+    Windows::Foundation::Collections::IMapView<int32_t, int32_t> Class::MapViewProperty()
+    {
+        throw hresult_not_implemented();
+    }
+    void Class::MapViewProperty(Windows::Foundation::Collections::IMapView<int32_t, int32_t> value)
+    {
+        throw hresult_not_implemented();
+    }
+    Windows::Foundation::Collections::IVector<int32_t> Class::VectorProperty()
+    {
+        throw hresult_not_implemented();
+    }
+    void Class::VectorProperty(Windows::Foundation::Collections::IVector<int32_t> const& value)
+    {
+        throw hresult_not_implemented();
+    }
+    Windows::Foundation::Collections::IMap<int32_t, int32_t> Class::MapProperty()
+    {
+        throw hresult_not_implemented();
+    }
+    void Class::MapProperty(Windows::Foundation::Collections::IMap<int32_t, int32_t> const& value)
+    {
+        throw hresult_not_implemented();
+    }
 }
