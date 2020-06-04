@@ -1,2 +1,2 @@
-add_subdirectory(cppwinrt)
+add_subdirectory(abi)
 add_subdirectory(pywinrt)
