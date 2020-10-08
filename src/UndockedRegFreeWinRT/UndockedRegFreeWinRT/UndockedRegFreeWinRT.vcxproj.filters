@@ -19,12 +19,19 @@
     <None Include="winrtact.def">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="catalog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dllmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="typeresolution.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="typeresolution.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

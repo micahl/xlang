@@ -7,12 +7,13 @@
 #include <wrl.h>
 #include <ctxtcall.h>
 #include <Processthreadsapi.h>
-#include "../detours/detours.h"
-#include "catalog.h"
 #include <activation.h>
 #include <hstring.h>
 #include <VersionHelpers.h>
+#include "../detours/detours.h"
+#include "catalog.h"
 #include "extwinrt.h"
+#include "TypeResolution.h"
 
 #define WIN1019H1_BLDNUM 18362
 
@@ -57,8 +58,6 @@ static decltype(RoActivateInstance)* TrueRoActivateInstance = RoActivateInstance
 static decltype(RoGetActivationFactory)* TrueRoGetActivationFactory = RoGetActivationFactory;
 static decltype(RoGetMetaDataFile)* TrueRoGetMetaDataFile = RoGetMetaDataFile;
 static decltype(RoResolveNamespace)* TrueRoResolveNamespace = RoResolveNamespace;
-
-std::wstring exeFilePath;
 
 enum class ActivationLocation
 {
@@ -199,7 +198,7 @@ HRESULT WINAPI RoActivateInstanceDetour(HSTRING activatableClassId, IInspectable
     // Activate in current apartment
     if (location == ActivationLocation::CurrentApartment)
     {
-        IActivationFactory* pFactory;
+        Microsoft::WRL::ComPtr<IActivationFactory> pFactory;
         RETURN_IF_FAILED(WinRTGetActivationFactory(activatableClassId, __uuidof(IActivationFactory), (void**)&pFactory));
         return pFactory->ActivateInstance(instance);
     }
@@ -223,7 +222,7 @@ HRESULT WINAPI RoActivateInstanceDetour(HSTRING activatableClassId, IInspectable
         {
             CrossApartmentMTAActData* data = reinterpret_cast<CrossApartmentMTAActData*>(pComCallData->pUserDefined);
             Microsoft::WRL::ComPtr<IInspectable> instance;
-            IActivationFactory* pFactory;
+            Microsoft::WRL::ComPtr<IActivationFactory> pFactory;
             RETURN_IF_FAILED(WinRTGetActivationFactory(data->activatableClassId, __uuidof(IActivationFactory), (void**)&pFactory));
             RETURN_IF_FAILED(pFactory->ActivateInstance(&instance));
             RETURN_IF_FAILED(CoMarshalInterThreadInterfaceInStream(IID_IInspectable, instance.Get(), &data->stream));
@@ -247,7 +246,6 @@ HRESULT WINAPI RoGetActivationFactoryDetour(HSTRING activatableClassId, REFIID i
     // Activate in current apartment
     if (location == ActivationLocation::CurrentApartment)
     {
-        IActivationFactory* pFactory;
         RETURN_IF_FAILED(WinRTGetActivationFactory(activatableClassId, iid, factory));
         return S_OK;
     }
@@ -286,7 +284,8 @@ HRESULT WINAPI RoGetMetaDataFileDetour(
     mdTypeDef* typeDefToken)
 {
     HRESULT hr = WinRTGetMetadataFile(name, metaDataDispenser, metaDataFilePath, metaDataImport, typeDefToken);
-    if (FAILED(hr))
+    // Don't fallback on RO_E_METADATA_NAME_IS_NAMESPACE failure. This is the intended behavior for namespace names.
+    if (FAILED(hr) && hr != RO_E_METADATA_NAME_IS_NAMESPACE)
     {
         hr = TrueRoGetMetaDataFile(name, metaDataDispenser, metaDataFilePath, metaDataImport, typeDefToken);
     }
@@ -303,11 +302,14 @@ HRESULT WINAPI RoResolveNamespaceDetour(
     DWORD* subNamespacesCount,
     HSTRING** subNamespaces)
 {
-    HRESULT hr = TrueRoResolveNamespace(name, Microsoft::WRL::Wrappers::HStringReference(exeFilePath.c_str()).Get(),
-        packageGraphDirsCount, packageGraphDirs,
+    PCWSTR exeFilePath = nullptr;
+    UndockedRegFreeWinRT::GetProcessExeDir(&exeFilePath);
+    auto pathReference = Microsoft::WRL::Wrappers::HStringReference(exeFilePath);
+    HSTRING packageGraphDirectories[] = { pathReference.Get() };
+    HRESULT hr = TrueRoResolveNamespace(name, pathReference.Get(),
+        ARRAYSIZE(packageGraphDirectories), packageGraphDirectories,
         metaDataFilePathsCount, metaDataFilePaths,
         subNamespacesCount, subNamespaces);
-
     if (FAILED(hr))
     {
         hr = TrueRoResolveNamespace(name, windowsMetaDataDir,
@@ -323,11 +325,6 @@ void InstallHooks()
     if (DetourIsHelperProcess()) {
         return;
     }
-
-    WCHAR filePath[MAX_PATH];
-    GetModuleFileNameW(nullptr, filePath, _countof(filePath));
-    std::wstring::size_type pos = std::wstring(filePath).find_last_of(L"\\/");
-    exeFilePath = std::wstring(filePath).substr(0, pos);
 
     DetourRestoreAfterWith();
 
